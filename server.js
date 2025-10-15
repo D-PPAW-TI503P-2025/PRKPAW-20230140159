@@ -1,33 +1,28 @@
-const express = require('express');
+const express = require("express");
+const cors = require("cors");
 const app = express();
-const port = 3001; 
+const PORT = 3001;
+const morgan = require("morgan");
 
-// Middleware wajib
+// Impor router
+const presensiRoutes = require("./routes/presensi");
+const reportRoutes = require("./routes/reports");
+
+// Middleware
+app.use(cors());
 app.use(express.json());
-
-app.use('/api/books', require('./books'));
-
-
-// Data dummy
-let books = [
-    { id: 1, title: 'Laskar Pelangi', author: 'Andrea Hirata' },
-    // ... data lainnya
-];
-
-// --- Mulai Route CRUD, TIDAK PERLU router.get, langsung app.get ---
-// GET all books
-app.get('/api/books', (req, res) => { // Perhatikan, menggunakan app.get
-    res.json(books);
+app.use(morgan("dev"));
+app.use((req, res, next) => {
+  console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
+  next();
 });
-
-// CREATE new book
-app.post('/api/books', (req, res) => { // Perhatikan, menggunakan app.post
-    // ... logika POST
+app.get("/", (req, res) => {
+  res.send("Home Page for API");
 });
-
-// ... lanjutkan dengan app.put, app.delete, dll.
-
-// Jalankan Server
-app.listen(port, () => {
-    console.log(`Server is running at http://localhost:${port}`);
+const ruteBuku = require("./routes/books");
+app.use("/api/books", ruteBuku);
+app.use("/api/presensi", presensiRoutes);
+app.use("/api/reports", reportRoutes);
+app.listen(PORT, () => {
+  console.log(`Express server running at http://localhost:${PORT}/`);
 });
