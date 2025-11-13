@@ -1,8 +1,9 @@
-# Tugas 3 
+# Tugas3.md
 
 - *Nama:* Muhammad Dzulfikri
 - *NIM:* 20230140159
 - *Kelas:* D
+
 
 
 Tampilan Check-in:
