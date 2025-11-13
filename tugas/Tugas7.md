@@ -5,7 +5,7 @@
 - *Kelas:* D
 
 ## 1. Login Page
-![Screenshot Halaman Login](./screenshot/login%20mahasiswa.png)
+![Screenshot Halaman Login](./screenshot/Halaman%20Login.png)
 
 ---
 
