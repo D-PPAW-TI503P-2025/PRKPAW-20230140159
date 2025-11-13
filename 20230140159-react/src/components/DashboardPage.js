@@ -1,15 +1,14 @@
 import React, { useState } from 'react';
-import { LogOut, LayoutDashboard, User, Settings, Zap } from 'lucide-react'; 
-// Pastikan Anda sudah menjalankan: npm install lucide-react
+import { LogOut, LayoutDashboard, User, Settings, Zap } from 'lucide-react'; // Using lucide-react for icons
 
-// Komponen Mock Login Page
+// Mock Login Page (handles the initial state transition)
 const LoginPage = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const handleLogin = (e) => {
     e.preventDefault();
-    // Logika login sederhana: asalkan ada input, login sukses
+    // Simplified login logic for this single-file demo
     if (email && password) {
       onLogin();
     }
@@ -51,7 +50,7 @@ const LoginPage = ({ onLogin }) => {
   );
 };
 
-// Komponen Dashboard Content
+// Enhanced Dashboard Content
 const DashboardContent = ({ onLogout }) => {
     
   const metrics = [
@@ -131,23 +130,21 @@ const DashboardContent = ({ onLogout }) => {
   );
 };
 
-// Komponen Utama Aplikasi
+// Main Application Component
 const App = () => {
-  // Ubah status awal menjadi false agar halaman Login tampil pertama kali
-  const [isLoggedIn, setIsLoggedIn] = useState(false); 
+  // Use state to manage authentication status (simulating a token check)
+  const [isLoggedIn, setIsLoggedIn] = useState(true); // Start as logged in for the dashboard view
 
   const handleLogin = () => {
-    // localStorage.setItem('token', 'mock-token'); // Opsi jika ingin menggunakan token
     setIsLoggedIn(true);
   };
 
   const handleLogout = () => {
-    // localStorage.removeItem('token'); // Opsi jika ingin menggunakan token
+    // navigate('/login'); // Not allowed, so we just change state
     setIsLoggedIn(false);
   };
 
   return (
-    // Memastikan struktur JSX adalah murni dan benar
     <div className="font-sans">
       {isLoggedIn ? (
         <DashboardContent onLogout={handleLogout} />
