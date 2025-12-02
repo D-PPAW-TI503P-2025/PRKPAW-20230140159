@@ -17,5 +17,5 @@
 ## 3. Check-out Berhasil
 ![Screenshot Halaman Check-out berhasil](./screenshot/Presensi_cekout.png)
 
-## 3. Laporan Admin
+## 4. Laporan Admin
 ![Screenshot Halaman Laporan Admin](./screenshot/Laporan%20Admin.png)
