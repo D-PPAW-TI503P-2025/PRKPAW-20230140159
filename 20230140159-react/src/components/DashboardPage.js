@@ -1,158 +1,161 @@
-import React, { useState } from 'react';
-import { LogOut, LayoutDashboard, User, Settings, Zap } from 'lucide-react'; // Using lucide-react for icons
+import React, { useEffect, useState } from "react";
+import { Home, CheckCircle, BarChart3, LogOut, Sparkles } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { jwtDecode } from "jwt-decode";
+import { motion } from "framer-motion";
 
-// Mock Login Page (handles the initial state transition)
-const LoginPage = ({ onLogin }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function DashboardPage() {
+    const navigate = useNavigate();
+    const [namaUser, setNamaUser] = useState("");
 
-  const handleLogin = (e) => {
-    e.preventDefault();
-    // Simplified login logic for this single-file demo
-    if (email && password) {
-      onLogin();
-    }
-  };
+    useEffect(() => {
+        try {
+            const token = localStorage.getItem("token");
+            if (token) {
+                const decode = jwtDecode(token);
+                setNamaUser(decode.nama || "User");
+            }
+        } catch (err) {
+            console.error("Token error:", err);
+        }
+    }, []);
 
-  return (
-    <div className="min-h-screen bg-gray-900 flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-sm p-8 bg-gray-800 rounded-xl shadow-2xl transition-all duration-300 hover:shadow-cyan-500/50">
-        <div className="text-center mb-6">
-          <Zap className="w-10 h-10 mx-auto text-cyan-400 mb-2" />
-          <h2 className="text-3xl font-extrabold text-white">Sign In</h2>
-        </div>
-        <form onSubmit={handleLogin} className="space-y-4">
-          <input
-            type="email"
-            placeholder="Email (e.g., user@example.com)"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-gray-400"
-          />
-          <input
-            type="password"
-            placeholder="Password (e.g., 123456)"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="w-full p-3 bg-gray-700 text-white border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-cyan-500 placeholder-gray-400"
-          />
-          <button
-            type="submit"
-            className="w-full flex items-center justify-center py-3 px-4 bg-cyan-600 text-white font-semibold rounded-lg shadow-lg shadow-cyan-600/30 hover:bg-cyan-500 transition-transform duration-200 transform hover:scale-[1.01]"
-          >
-            Login
-          </button>
-        </form>
-      </div>
-    </div>
-  );
-};
+    const getInitials = (name) => {
+        if (!name) return "U";
+        const parts = name.split(" ");
+        return parts.length > 1
+            ? parts[0][0] + parts[1][0]
+            : parts[0][0];
+    };
 
-// Enhanced Dashboard Content
-const DashboardContent = ({ onLogout }) => {
-    
-  const metrics = [
-    { title: "Active Projects", value: "14", icon: <LayoutDashboard className="w-6 h-6 text-indigo-400" /> },
-    { title: "Team Members", value: "8", icon: <User className="w-6 h-6 text-green-400" /> },
-    { title: "Task Completion", value: "92%", icon: <Zap className="w-6 h-6 text-yellow-400" /> },
-    { title: "Settings Updated", value: "3 days ago", icon: <Settings className="w-6 h-6 text-pink-400" /> },
-  ];
+    const logout = () => {
+        localStorage.removeItem("token");
+        navigate("/login");
+    };
 
-  return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      {/* Header */}
-      <header className="w-full bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-10">
-        <h1 className="text-2xl font-bold text-gray-800 flex items-center">
-          <Zap className="w-6 h-6 text-indigo-600 mr-2" />
-          Creative Dashboard
-        </h1>
-        <button
-          onClick={onLogout}
-          className="flex items-center space-x-2 py-2 px-4 bg-red-600 text-white font-semibold text-sm rounded-full shadow-md hover:bg-red-700 transition-all duration-200 transform hover:scale-[1.05]"
-        >
-          <LogOut className="w-5 h-5" />
-          <span>Logout</span>
-        </button>
-      </header>
+    return (
+        <div className="min-h-screen flex bg-gradient-to-br from-black via-gray-900 to-[#0a0a0f] text-white p-6">
 
-      {/* Main Content Area */}
-      <main className="flex-grow p-4 md:p-8">
-        {/* Welcome Card */}
-        <div className="bg-gradient-to-r from-indigo-500 to-purple-600 p-6 md:p-10 rounded-2xl shadow-xl mb-8 text-white">
-          <h2 className="text-4xl font-extrabold mb-2">
-            Login Sukses!
-          </h2>
-          <p className="text-xl font-light">
-            Selamat Datang, **Pengguna Kreatif**! Mari kita wujudkan ide-ide brilian hari ini.
-          </p>
-        </div>
-
-        {/* Metric Cards Grid */}
-        <h3 className="text-2xl font-semibold text-gray-800 mb-5 border-b pb-2">Overview Metrics</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {metrics.map((metric, index) => (
-            <div 
-              key={index} 
-              className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-indigo-400 transition-all duration-300 hover:shadow-xl hover:scale-[1.02] cursor-pointer"
+            {/* Sidebar */}
+            <motion.div
+                initial={{ x: -80, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                className="w-64 bg-[#12121a]/60 backdrop-blur-xl border border-[#2a2a38] 
+                shadow-2xl rounded-2xl p-6 space-y-10 h-full relative"
             >
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-lg font-medium text-gray-500">{metric.title}</p>
-                {metric.icon}
-              </div>
-              <p className="text-4xl font-bold text-gray-900">{metric.value}</p>
+                {/* Glow Effect Sidebar */}
+                <div className="absolute inset-0 rounded-2xl border border-purple-800/20 shadow-[0_0_25px_rgba(150,70,255,0.15)] pointer-events-none" />
+
+                {/* Profile */}
+                <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-indigo-700 
+                        flex items-center justify-center text-lg font-bold shadow-xl shadow-purple-900/40">
+                        {getInitials(namaUser)}
+                    </div>
+
+                    <div>
+                        <p className="font-semibold">{namaUser}</p>
+                        <p className="text-xs text-gray-400">Online • Dashboard</p>
+                    </div>
+                </div>
+
+                {/* Menu + Logout in one group */}
+                <div className="space-y-4">
+
+                    {/* Menu items */}
+                    <SidebarItem icon={<Home size={20} />} label="Dashboard" active />
+                    <SidebarItem icon={<CheckCircle size={20} />} label="Presensi" />
+                    <SidebarItem icon={<BarChart3 size={20} />} label="Laporan" />
+
+                    {/* Logout */}
+                    <button
+                        onClick={logout}
+                        className="flex items-center gap-3 px-2 py-2 rounded-lg text-red-400 
+                        hover:text-red-300 hover:bg-red-900/20 hover:translate-x-1 transition"
+                    >
+                        <LogOut size={20} /> Logout
+                    </button>
+
+                </div>
+            </motion.div>
+
+            {/* Main Content */}
+            <div className="flex-1 ml-6">
+
+                {/* Header Soft Glow */}
+                <motion.div
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="relative bg-[#1a1a25]/70 border border-[#333344]
+                    p-8 rounded-3xl shadow-[0_0_25px_rgba(120,80,255,0.15)] backdrop-blur-xl overflow-hidden"
+                >
+                    {/* Soft Gradient Glow */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-700/20 via-indigo-700/20 to-pink-700/20 blur-xl opacity-50"></div>
+
+                    <div className="relative">
+                        <h1 className="text-4xl font-extrabold flex items-center gap-2 text-white">
+                            Selamat Datang, {namaUser}
+                        </h1>
+                        <p className="text-gray-400 mt-1">
+                            Dashboard Website Presensi Mahasiswa
+                        </p>
+                    </div>
+                </motion.div>
+
+                {/* Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+
+                    {/* Presensi */}
+                    <GlowCard color="purple">
+                        <h3 className="text-2xl font-semibold mb-2">Presensi</h3>
+                        <p className="text-gray-400">Kelola & lihat data presensi</p>
+                    </GlowCard>
+
+                    {/* Laporan */}
+                    <GlowCard color="blue">
+                        <h3 className="text-2xl font-semibold mb-2">Laporan</h3>
+                        <p className="text-gray-400">Akses laporan lengkap sistem</p>
+                    </GlowCard>
+
+                </div>
+
             </div>
-          ))}
         </div>
+    );
+}
 
-        {/* Placeholder Content Section */}
-        <div className="bg-white p-6 rounded-2xl shadow-xl">
-            <h3 className="text-xl font-semibold text-gray-800 mb-4">Quick Tasks</h3>
-            <ul className="space-y-3">
-                <li className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-150">
-                    <span className="text-gray-700">Review monthly report</span>
-                    <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">Open</button>
-                </li>
-                 <li className="flex justify-between items-center p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition duration-150">
-                    <span className="text-gray-700">Organize sprint planning meeting</span>
-                    <button className="text-sm text-indigo-600 hover:text-indigo-800 font-medium">Open</button>
-                </li>
-            </ul>
-        </div>
-      </main>
-      
-      {/* Footer */}
-      <footer className="w-full p-4 bg-gray-800 text-center text-gray-400 text-sm">
-        &copy; {new Date().getFullYear()} CreativeApp Dashboard. All rights reserved.
-      </footer>
-    </div>
-  );
-};
+/* ---------------- Sidebar Component ---------------- */
 
-// Main Application Component
-const App = () => {
-  // Use state to manage authentication status (simulating a token check)
-  const [isLoggedIn, setIsLoggedIn] = useState(true); // Start as logged in for the dashboard view
+function SidebarItem({ icon, label, active }) {
+    return (
+        <button
+            className={`flex items-center gap-3 px-2 py-2 rounded-lg 
+            transition-all ${
+                active
+                    ? "text-purple-300 font-semibold bg-purple-900/30 border border-purple-600/20 shadow-[0_0_12px_rgba(140,60,255,0.18)]"
+                    : "text-gray-300 hover:text-purple-300 hover:bg-purple-900/20"
+            }`}
+        >
+            {icon} {label}
+        </button>
+    );
+}
 
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-  };
+/* ---------------- Glow Card Component ---------------- */
 
-  const handleLogout = () => {
-    // navigate('/login'); // Not allowed, so we just change state
-    setIsLoggedIn(false);
-  };
+function GlowCard({ color, children }) {
+    const colorClass = {
+        purple: "shadow-purple-600/40 hover:shadow-purple-700/50 border-purple-600/20",
+        blue: "shadow-blue-600/40 hover:shadow-blue-700/50 border-blue-600/20",
+    }[color];
 
-  return (
-    <div className="font-sans">
-      {isLoggedIn ? (
-        <DashboardContent onLogout={handleLogout} />
-      ) : (
-        <LoginPage onLogin={handleLogin} />
-      )}
-    </div>
-  );
-};
-
-export default App;
+    return (
+        <motion.div
+            whileHover={{ scale: 1.04 }}
+            className={`p-6 rounded-3xl bg-[#11111a]/60 border backdrop-blur-xl shadow-xl 
+            cursor-pointer transition ${colorClass}`}
+        >
+            {children}
+        </motion.div>
+    );
+}

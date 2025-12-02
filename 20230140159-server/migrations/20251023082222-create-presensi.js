@@ -20,12 +20,12 @@ module.exports = {
         onDelete: "CASCADE",
       },
       checkIn: {
-        type: Sequelize.DATE,
-        allowNull: false
+        allowNull: false,
+        type: Sequelize.DATE
       },
       checkOut: {
-        type: Sequelize.DATE,
-        allowNull: true
+        allowNull: true, // checkOut bisa kosong saat pertama kali check-in
+        type: Sequelize.DATE
       },
       latitude: {
         type: Sequelize.DECIMAL(10, 7),
