@@ -1,10 +1,11 @@
 // src/components/PresensiPage.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import axios from "axios";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import icon from "leaflet/dist/images/marker-icon.png";
 import iconShadow from "leaflet/dist/images/marker-shadow.png";
+import Webcam from 'react-webcam';
 import 'leaflet/dist/leaflet.css';
 
 L.Marker.prototype.options.icon = L.icon({
@@ -29,6 +30,14 @@ function AttendancePage() {
     return localStorage.getItem("token");
   };
 
+  const [image, setImage] = useState(null);
+  const webcamRef = useRef(null);
+  const capture = useCallback(() => {
+    const imageSrc = webcamRef.current.getScreenshot();
+    setImage(imageSrc);
+  }, [webcamRef]);
+
+
   // Fungsi untuk mendapatkan lokasi pengguna
   const getLocation = () => {
     if (navigator.geolocation) {
@@ -41,9 +50,8 @@ function AttendancePage() {
           setIsLoading(false);
         },
         (error) => {
-          // Ketika error, atur isLoading ke false, tapi coords tetap null
-          setError("Gagal mendapatkan lokasi: " + error.message + ". Mohon izinkan akses lokasi.");
-          setIsLoading(false); 
+          setError("Gagal mendapatkan lokasi: " + error.message);
+          setIsLoading(false);
         }
       );
     } else {
@@ -56,28 +64,31 @@ function AttendancePage() {
   }, []);
 
   const handleCheckIn = async () => {
-    if (!coords) {
-      setError("Lokasi belum didapatkan. Mohon izinkan akses lokasi.");
+    if (!coords || !image) {
+      setError("Lokasi dan Foto wajib ada!");
       return;
     }
+
     try {
+      const blob = await (await fetch(image)).blob();
       const config = {
         headers: {
           Authorization: `Bearer ${getToken()}`,
         },
       };
+      const formData = new FormData();
+      formData.append('latitude', coords.lat);
+      formData.append('longitude', coords.lng);
+      formData.append('image', blob, 'selfie.jpg');
 
       const response = await axios.post(
-        "http://localhost:3001/api/presensi/check-in",
-        // Kirim data lokasi bersama request
-        {
-          latitude: coords.lat,
-          longitude: coords.lng,
-        },
-        config
+        'http://localhost:3001/api/presensi/check-in',
+        formData,
+        { headers: { Authorization: `Bearer ${getToken()}` } }
       );
 
       setMessage(response.data.message);
+
     } catch (err) {
       setError(err.response ? err.response.data.message : "Check-in gagal");
     }
@@ -107,7 +118,6 @@ function AttendancePage() {
   return (
     <div className="min-h-screen bg-gray-100 flex flex-col items-center pt-10 pb-10">
       {isLoading ? (
-        // BLOK 1: Sedang memuat (isLoading=true)
         <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-6xl mb-8 text-center">
           <p className="text-xl font-semibold text-blue-600 animate-pulse">
             Memuat Peta dan Mendeteksi Lokasi...
@@ -115,47 +125,53 @@ function AttendancePage() {
           {error && <p className="text-red-600 mt-4">{error}</p>}
         </div>
       ) : (
-        // BLOK 2: Loading Selesai (isLoading=false)
-        // **PERBAIKAN UTAMA:** Tambahkan pemeriksaan 'coords' di sini
-        coords ? (
-            // Skenario 2A: Lokasi Berhasil Didapatkan (coords ada)
-            <div className="bg-white p-4 rounded-lg shadow-md w-full mb-8 px-8 max-w-6xl">
-                <h3 className="text-xl font-semibold mb-2">Lokasi Terdeteksi:</h3>
-                <div className="my-4 border rounded-lg overflow-hidden">
-                    <MapContainer
-                        center={[coords.lat, coords.lng]} // Aman, karena coords sudah diperiksa
-                        zoom={15}
-                        style={{ height: "300px", width: "100%" }}
-                    >
-                        <TileLayer
-                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <Marker position={[coords.lat, coords.lng]}>
-                            <Popup>Lokasi Presensi Anda</Popup>
-                        </Marker>
-                    </MapContainer>
-                </div>
-            </div>
-        ) : (
-            // Skenario 2B: Lokasi Gagal Didapatkan (coords tetap NULL)
-            <div className="bg-white p-10 rounded-lg shadow-md w-full max-w-6xl mb-8 text-center">
-                <p className="text-xl font-semibold text-red-600">
-                    Peta Gagal Dimuat.
-                </p>
-                {/* Tampilkan pesan error Geolocation jika ada */}
-                {error && <p className="text-red-600 mt-4">{error}</p>}
-                
-                {/* Opsi: Tambahkan tombol coba lagi */}
-                <button
-                    onClick={getLocation}
-                    className="mt-4 py-2 px-4 bg-blue-500 text-white rounded hover:bg-blue-600"
-                >
-                    Coba Deteksi Lokasi Lagi
-                </button>
-            </div>
-        )
+        <div className="bg-white p-4 rounded-lg shadow-md w-full mb-8 px-8 max-w-6xl">
+          <h3 className="text-xl font-semibold mb-2">Lokasi Terdeteksi:</h3>
+          <div className="my-4 border rounded-lg overflow-hidden">
+            <MapContainer
+              center={[coords.lat, coords.lng]}
+              zoom={15}
+              style={{ height: "300px", width: "100%" }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              <Marker position={[coords.lat, coords.lng]}>
+                <Popup>Lokasi Presensi Anda</Popup>
+              </Marker>
+            </MapContainer>
+          </div>
+        </div>
       )}
+
+
+
+          <div className="my-4 border rounded-lg overflow-hidden bg-black">
+            {image ? (
+              <img src={image} alt="Selfie" className="w-full" />
+            ) : (
+              <Webcam
+                audio={false}
+                ref={webcamRef}
+                screenshotFormat="image/jpeg"
+                className="w-full"
+              />
+            )}
+          </div>
+
+          <div className="mb-4">
+            {!image ? (
+              <button onClick={capture} className="bg-blue-500 text-white px-4 py-2 rounded w-full">
+                Ambil Foto 📸
+              </button>
+            ) : (
+              <button onClick={() => setImage(null)} className="bg-gray-500 text-white px-4 py-2 rounded w-full">
+                Foto Ulang 🔄
+              </button>
+            )}
+          </div>
+
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md text-center">
         <h2 className="text-3xl font-bold mb-6 text-gray-800">
           Lakukan Presensi
@@ -167,10 +183,7 @@ function AttendancePage() {
         <div className="flex space-x-4">
           <button
             onClick={handleCheckIn}
-            // Tambahkan disable jika coords masih null
-            disabled={!coords} 
-            className={`w-full py-3 px-4 text-white font-semibold rounded-md shadow-sm 
-              ${!coords ? 'bg-gray-400 cursor-not-allowed' : 'bg-green-600 hover:bg-green-700'}`}
+            className="w-full py-3 px-4 bg-green-600 text-white font-semibold rounded-md shadow-sm hover:bg-green-700"
           >
             Check-In
           </button>
